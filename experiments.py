@@ -105,46 +105,14 @@ if __name__ == "__main__":
 
     dataset = CIFAR10()
 
-    # net = nets.FCN()
-    # run_experiment("2aFCN",
-    #                net,
-    #                dataset,
-    #                [1e-4, 1e-2],  # lr range
-    #                [0.8, 1.0],    # momentum range
-    #                rounds=1,
-    #                num_epochs=1)
-
-    # for tt in range(3):
-    #     M = np.random.randint(100, 500)
-    #     net = nets.FCN_FCH({'M': M}).cuda()
-    #     run_experiment("2bFCN_FCH_%d" % M,
-    #                    net,
-    #                    dataset,
-    #                    [1e-5, 1e-3],  # lr range
-    #                    [0.6, 0.9],    # momentum range
-    #                    rounds=4,
-    #                    num_epochs=10)
-    
-    # M = np.random.randint(100, 500)
-    # p = np.random.randint(4, 8)
-    # N = (33 - p)//np.random.randint(2, 5)
-    # net = nets.CNN_Basic({'M':M, 'p':p, 'N': N}).cuda()
-    # run_experiment("2cCNN_Basic-M%d_p%d_N%d" % (M,p,N),
-    #                net,
-    #                dataset,
-    #                [1e-5, 1e-3],  # lr range
-    #                [0.6, 0.9],    # momentum range
-    #                rounds=1,
-    #                num_epochs=2)
-
-    net = nets.CNN_Complex({'input_dim': 33,
-                            'convs': 2,
-                            'depths': [128, 412],
-                            'kernels': [4, 3],
-                            'pools': [('Max', 3, 0), ('Avg', 3, 1)],
-                            'fcs': 2,
-                            'fcdims': [888, 10]}).cuda()
-    run_experiment("2dCNN_Complex-C%d_F%d" % (3, 2),
+    net = nets.CNN({'input_dim': 33,
+                    'convs': 2,
+                    'depths': [128, 412],
+                    'kernels': [4, 3],
+                    'pools': [('Max', 3, 0), ('Avg', 3, 1)],
+                    'fcs': 2,
+                    'fcdims': [888, 10]}).cuda()
+    run_experiment("CNN-C%d_F%d" % (3, 2),
                    net,
                    dataset,
                    [1e-5, 1e-3],  # lr range

@@ -12,33 +12,6 @@ def weights_init(layer):
         init.xavier_uniform(layer.weight)
         init.constant(layer.bias, 0)
 
-class CNNExample(nn.Module):
-
-    def __init__(self):
-        super(CNNExample, self).__init__()
-        self.conv1 = nn.Conv2d(3, 6, 5)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(6, 16, 5)
-        self.fc1 = nn.Linear(16 * 5 * 5, 120)
-        self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 10)
-
-    def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))
-        x = self.pool(F.relu(self.conv2(x)))
-        x = x.view(-1, 16 * 5 * 5)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
-        return x
-
-    def num_flat_features(self, x):
-        size = x.size()[1:]  # all dimensions except the batch dimension
-        num_features = 1
-        for s in size:
-            num_features *= s
-        return num_features
-
 
 class Net(nn.Module):
     """Some neural network"""
@@ -52,69 +25,10 @@ class Net(nn.Module):
         for s in size:
             num_features *= s
         return num_features
-    
-# 2a
-class FCN(Net):
-    """Fully connected single layer network"""
-    def __init__(self):
-        super(FCN, self).__init__()
-        self.fc1 = nn.Linear(3*32*32, 10, bias=True)
-        self.apply(weights_init)
-
-    def forward(self, x):
-        x = x.view(-1, 3*32*32)
-        x = self.fc1(x)
-        return x
 
 
-# 2b
-class FCN_FCH(Net):
-    """Fully connected single layer network with one fully connected
-    hidden layer nonlinearized by ReLu."""
-    def __init__(self, config):
-        if "M" not in config:
-            raise ValueError("M must be configured!")
-        super(FCN_FCH, self).__init__(config)
-        M = self.config['M']
-        self.fc_h = nn.Linear(3*32*32, M, bias=True)
-        self.fc_o = nn.Linear(M, 10, bias=True)
-        self.apply(weights_init)
-
-    def forward(self, x):
-        x = x.view(-1, 3*32*32)
-        x = F.relu(self.fc_h(x))
-        x = self.fc_o(x)
-        return x
-
-    
-# 2c
-class CNN_Basic(Net):
-    """Fully connected output + one convolutional layer with max pool"""
-    def __init__(self, config):
-        if "M" not in config or "p" not in config or "N" not in config:
-            raise ValueError("M, p, N must be configured!")
-        super(CNN_Basic, self).__init__(config)
-        M = self.config['M']
-        p = self.config['p']
-        N = self.config['N']  # Pool size (i.e. dimension of the pool of cells (think about swimming pool))
-        self.conv1 = nn.Conv2d(3, M, p)
-        self.pool = nn.MaxPool2d(N, N)
-        dim = int((33 - p) / N)  # side dimension of layer after pool
-        self.fc1 = nn.Linear(dim*dim*M, 10, bias=True)
-        self.apply(weights_init)
-
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        x = self.pool(x)
-        dim = int((33 - self.config['p']) / self.config['N'])
-        x = x.view(-1, dim*dim*self.config['M'])
-        x = self.fc1(x)
-        return x
-
-
-# 2d
-class CNN_Complex(Net):
-    """Fully connected output + one convolutional layer with max pool"""
+class CNN(Net):
+    """Convolutional neural network"""
     def __init__(self, config):
         """How to config:
 
@@ -132,7 +46,7 @@ class CNN_Complex(Net):
         'fcdims': [...d...] # List of integers d for dimensions of each
                             # fully connected layer.
         """
-        super(CNN_Complex, self).__init__(config)
+        super(CNN, self).__init__(config)
 
         # Convolution layers, and pools
         layer_dim = self.config['input_dim']
