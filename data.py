@@ -1,6 +1,3 @@
-# CSE 546 Homework 1
-# Problem 2
-#
 # CIFAR10 dataset
 
 import torch

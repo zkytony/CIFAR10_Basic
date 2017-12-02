@@ -1,7 +1,4 @@
-# CSE 546 Homework 1
-# Problem 2
-#
-# Networks
+# Experiments
 
 import torch
 import torch.nn as nn

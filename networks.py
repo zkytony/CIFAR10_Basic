@@ -1,7 +1,4 @@
-# CSE 546 Homework 1
-# Problem 2
-#
-# Networksx
+# Networks
 
 import torch.nn as nn
 import torch.nn.functional as F
