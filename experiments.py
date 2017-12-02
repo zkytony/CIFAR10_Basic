@@ -112,7 +112,7 @@ if __name__ == "__main__":
                     'pools': [('Max', 3, 0), ('Avg', 3, 1)],
                     'fcs': 2,
                     'fcdims': [888, 10]}).cuda()
-    run_experiment("CNN-C%d_F%d" % (3, 2),
+    run_experiment("CNN-C%d_F%d" % (2, 2),
                    net,
                    dataset,
                    [1e-5, 1e-3],  # lr range
