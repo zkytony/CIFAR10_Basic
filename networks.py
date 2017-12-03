@@ -39,6 +39,9 @@ class CNN(Net):
                                       # pooling method (Max or Avg), with pool
                                       # size N by N. The pool is performed at
                                       # conv layer i.
+        'dropout': float  # If non-zero, apply a dropout layer this percentage
+                          # after each convolution layer. If there is pooling after
+                          # convolution layer, then apply dropout after pooling.
         'fcs': integer # Number of fully connected layers
         'fcdims': [...d...] # List of integers d for dimensions of each
                             # fully connected layer.
@@ -56,6 +59,8 @@ class CNN(Net):
 
         self.convs = nn.ModuleList()
         self.pools = nn.ModuleList()
+        if self.config['dropout'] > 0:
+            self.dropouts = nn.ModuleList()
         for i in range(self.config['convs']):
             self.convs.append(nn.Conv2d(depth_prev, self.config['depths'][i], self.config['kernels'][i]))
             depth_prev = self.config['depths'][i]
@@ -69,9 +74,13 @@ class CNN(Net):
                     self.pools.append(nn.AvgPool2d(pool_size, pool_size))
                 else:
                     raise ValueError("Unrecognized pool method %s" % pool_method)
-                layer_dim = layer_dim // pool_size
+                layer_dim = int(np.ceil(layer_dim / pool_size))
             else:
                 self.pools.append(None)
+
+            # Dropout layer
+            if self.config['dropout'] > 0:
+                self.dropouts.append(nn.Dropout(p=self.config['dropout']))
                  
         # Fully connected layers
         self.fcs = nn.ModuleList()
@@ -88,6 +97,9 @@ class CNN(Net):
             x = F.relu(self.convs[i](x))
             if i in self.pool_info:
                 x = self.pools[i](x)
+            # Dropout, if specified
+            if self.config['dropout'] > 0:
+                x = self.dropouts[i](x)
         x = x.view(-1, self.last_conv_size)
         # Push through the fully connected layers
         for j in range(self.config['fcs']):
