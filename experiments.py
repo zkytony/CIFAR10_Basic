@@ -101,18 +101,42 @@ def run_experiment(name, net, dataset, lr_range, momentum_range, rounds=5, num_e
 if __name__ == "__main__":
 
     dataset = CIFAR10()
-
-    net = nets.CNN({'input_dim': 33,
-                    'convs': 2,
-                    'depths': [128, 412],
-                    'kernels': [4, 3],
-                    'pools': [('Max', 3, 0), ('Avg', 3, 1)],
-                    'fcs': 2,
-                    'fcdims': [888, 10]}).cuda()
-    run_experiment("CNN-C%d_F%d" % (2, 2),
+    #  0             1             2             3
+    # CV(relu)-Pool-CV(relu)-Pool-CV(relu)-Pool-CV(relu)-Pool-FC-FC-FC
+    #
+    depths = [64,
+              128,
+              256,
+              512]
+    kernels = [3,       # kernel sizes
+               3,
+               3,
+               3]
+    paddings = [0,
+                1,
+                1,
+                1]
+    pools = [('Max', 2, 0),
+             ('Avg', 2, 1),
+             ('Avg', 2, 2),
+             ('Avg', 2, 3)]
+    fullycons = [1024,
+                 512,
+                 10]
+    config = {'input_dim': 32,
+              'convs'    : len(depths),
+              'depths'   : depths,
+              'kernels'  : kernels,
+              'paddings' : paddings,
+              'pools'    : pools,
+              'dropout'  : 0.4,
+              'fcs'      : len(fullycons),
+              'fcdims'   : fullycons }
+    net = nets.CNN_Complex(config).cuda()
+    run_experiment("2dCNN_Complex-C%d_F%d" % (config['convs'], config['fcs']),
                    net,
                    dataset,
                    [1e-5, 1e-3],  # lr range
                    [0.6, 0.9],    # momentum range
-                   rounds=1,
-                   num_epochs=2)
+                   rounds=4,
+                   num_epochs=400)

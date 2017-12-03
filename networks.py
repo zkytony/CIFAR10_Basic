@@ -25,7 +25,7 @@ class Net(nn.Module):
 
 
 class CNN(Net):
-    """Convolutional neural network"""
+    """Convolutional Neural Networks"""
     def __init__(self, config):
         """How to config:
 
@@ -35,13 +35,14 @@ class CNN(Net):
                              # layer. 
         'kernels': [...k...]  # List of integers k for kernel size of each
                               # convolution layer.
+        'paddings': [...p...] # Padding for each convolution layer.
         'pools': [(METHOD, N, i), ...] # List of tuples (METHOD, N) to specify
                                       # pooling method (Max or Avg), with pool
                                       # size N by N. The pool is performed at
                                       # conv layer i.
         'dropout': float  # If non-zero, apply a dropout layer this percentage
                           # after each convolution layer. If there is pooling after
-                          # convolution layer, then apply dropout after pooling.
+                          # convolution layer, then apply dropout after pooling.p
         'fcs': integer # Number of fully connected layers
         'fcdims': [...d...] # List of integers d for dimensions of each
                             # fully connected layer.
@@ -52,7 +53,6 @@ class CNN(Net):
         layer_dim = self.config['input_dim']
         depth_prev = 3  # R, G, B
         
-
         self.pool_info = {}
         for method, size, layer in self.config['pools']:
             self.pool_info[layer] = (method, size)
@@ -62,10 +62,17 @@ class CNN(Net):
         if self.config['dropout'] > 0:
             self.dropouts = nn.ModuleList()
         for i in range(self.config['convs']):
-            self.convs.append(nn.Conv2d(depth_prev, self.config['depths'][i], self.config['kernels'][i]))
+            self.convs.append(nn.Conv2d(depth_prev,
+                                        self.config['depths'][i],
+                                        self.config['kernels'][i],
+                                        padding=self.config['paddings'][i]))
             depth_prev = self.config['depths'][i]
 
-            layer_dim = int(layer_dim - self.config['kernels'][i])
+            # layer_dim is size of side of a layer. It is computed by
+            #
+            #    layer_dim = floor((layer_dim - kernel_size) / pool_size) + 1
+            #
+            layer_dim = layer_dim - self.config['kernels'][i]
             if i in self.pool_info:
                 pool_method, pool_size = self.pool_info[i]
                 if pool_method == "Max":
@@ -74,9 +81,10 @@ class CNN(Net):
                     self.pools.append(nn.AvgPool2d(pool_size, pool_size))
                 else:
                     raise ValueError("Unrecognized pool method %s" % pool_method)
-                layer_dim = int(np.ceil(layer_dim / pool_size))
+                layer_dim = layer_dim // pool_size
             else:
                 self.pools.append(None)
+            layer_dim = layer_dim + 1
 
             # Dropout layer
             if self.config['dropout'] > 0:
